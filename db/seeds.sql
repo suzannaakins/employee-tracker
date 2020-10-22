@@ -1,26 +1,24 @@
-DROP DATABASE IF EXISTS employees_db;
-CREATE DATABASE employees_db;
-USE employees_db;
+INSERT INTO departments (name)
+VALUES
+  ('Production'),
+  ('HMU'),
+  ('Talent'),
+  ('Camera'),
+  ('Electric'),
+  ('Grip'),
+  ('Art'),
+  ('Catering'),
+  ('Sound');
 
-CREATE TABLE departments (
-    id INTEGER(10) AUTO_INCREMENT NOT NULL,
-    name VARCHAR(30),
-    PRIMARY KEY (id)
-);
+INSERT INTO roles (title, salary, departmentId)
+VALUES
+  ('Director', 700.90, 1),
+  ('Cinematographer', 298, 4),
+  ('Assistant Director', 235, 1),
+  ('Key Grip', 87.65, 6),
+  ('Best Boy Elec', 200.50, 5);
 
-CREATE TABLE roles (
-    id INTEGER(10) AUTO_INCREMENT NOT NULL,
-    title VARCHAR(30),
-    salary DECIMAL,
-    department_id INT,
-    PRIMARY KEY (id)
-);
-
-CREATE TABLE employees (
-    id INTEGER(10) AUTO_INCREMENT NOT NULL,
-    first_name VARCHAR(30),
-    last_name VARCHAR(30),
-    role_id INT,
-    manager_id INT,
-    PRIMARY KEY (id)
-);
+INSERT INTO employees (firstName, lastName, roleId, managerId)
+VALUES
+  ('Rick', 'Famuylwa', 1, 1),
+  ('Rodrigo', 'Prieto', 2, 2);
