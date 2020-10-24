@@ -1,15 +1,14 @@
 // get the client
 const mysql = require('mysql2');
 const inquirer = require('inquirer');
-const db = require('./db/database.js');
-require("dotenv").config();
+const table = require('console.table');
 
 //create connection to database
 const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: process.env.PASSWORD,
-    database: 'employeedb'
+    password: 'squ3al',
+    database: 'employees_db'
 });
 
 //user prompts - INQUIRER
@@ -61,7 +60,7 @@ const loadPrompts = () => {
 }
 
 const viewAllDepartments = () => {
-    connection.promise().query(`SELECT * FROM employees`)
+    connection.promise().query(`SELECT * FROM departments`)
         .then(([rows]) => {
             console.table(rows)
             loadPrompts();
@@ -69,7 +68,7 @@ const viewAllDepartments = () => {
 }
 
 const viewAllRoles = () => {
-    connection.promise().query(`SELECT * FROM employees`)
+    connection.promise().query(`SELECT * FROM roles`)
         .then(([rows]) => {
             console.table(rows)
             loadPrompts();
@@ -88,14 +87,13 @@ const addDepartment = () => {
     inquirer.prompt(
         {
             type: "input",
-            name: "firstName",
+            name: "name",
             message: "What is the name of your new department?"
-        }
-            .then(res => {
-                connection.promise().query(`INSERT INTO departments SET ?`, res)
-            })
-            .then(console.log(`Department has been added!`))
-    )
+        })
+        .then(res => {
+            connection.promise().query(`INSERT INTO departments SET name=?`, res.name)
+        })
+        .then(() => console.log(`Added department!`))
 };
 
 const addRole = () => {
@@ -115,15 +113,15 @@ const addRole = () => {
                 },
                 {
                     type: "list",
-                    name: "department",
+                    name: "departmentId",
                     message: "Which department does this role work in?",
                     choices: deptArr
                 }
             ])
                 .then(res => {
-                    connection.promise().query(`INSERT INTO departments SET ?`, res)
+                    connection.promise().query(`INSERT INTO roles SET ?`, res)
                 })
-                .then(console.log(`Role has been added!`))
+                .then(() => console.log(`Added role!`))
         })
 };
 
@@ -171,31 +169,31 @@ const updateEmployee = () => {
     connection.promise().query(`SELECT employees.id, employees.firstName, employees.lastName FROM employees`)
         .then(([rows]) => {
             const empArr = rows.map(row => ({ value: row.id, name: row.firstName + ' ' + row.lastName }))
-            inquirer.prompt(
+            inquirer.prompt([
                 {
                     type: "list",
                     name: "employeeId",
                     message: "Which employee role would you like to update?",
                     choices: empArr
                 }
-            )
+            ])
                 .then(res => {
+                    let id = res.employeeId
                     connection.promise().query(`SELECT roles.id, roles.title FROM roles`)
                         .then(([rows]) => {
                             const roleArr = rows.map(row => ({ value: row.id, name: row.title }))
-                            inquirer.prompt(
+                            inquirer.prompt([
                                 {
                                     type: "list",
                                     name: "roleId",
                                     message: "What is the employee's new role?",
                                     choices: roleArr
                                 }
-                            )
+                            ])
                                 .then(res => {
-                                    connection.promise().query(`UPDATE employees SET roleId = ? WHERE id = ?`, res.roleId, res.employeeId)
+                                    connection.promise().query(`UPDATE employees SET roleId=? WHERE id=?`, [res.roleId, id])
                                 })
-                                .then(console.log(`Employee has been updated!`))
-                                .then(loadPrompts());
+                                .then(() => console.log(`Employee has been updated.`))
                         });
                 });
         });
