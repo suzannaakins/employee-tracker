@@ -25,7 +25,9 @@ const loadPrompts = () => {
                 "add a department",
                 "add a role",
                 "add an employee",
-                "update an employee role"
+                "update an employee role",
+                "delete a department",
+                "exit the app"
             ]
         }
     )
@@ -52,9 +54,16 @@ const loadPrompts = () => {
                 case "update an employee role":
                     updateEmployee()
                     break;
+                case "delete a department":
+                    deleteDepartment()
+                    break;
+                case "exit the app":
+                    exitConnection();
+                    break;
                 default:
-                //quit function
-                //maybe include console.log(error) and message to the user THEN QUIT
+                    console.log("Option not found. That's on us.")
+                    exitConnection();
+                    break;
             }
         })
 }
@@ -76,7 +85,7 @@ const viewAllRoles = () => {
 };
 
 const viewAllEmployees = () => {
-    connection.promise().query(`SELECT * FROM employees`)
+    connection.promise().query(`SELECT employees.id, employees.firstName, employees.lastName, employees.managerId, roles.title, roles.salary, departments.name FROM employees LEFT JOIN roles ON employees.roleId = roles.id LEFT JOIN departments ON roles.departmentId = departments.id`)
         .then(([rows]) => {
             console.table(rows)
             loadPrompts();
@@ -94,6 +103,7 @@ const addDepartment = () => {
             connection.promise().query(`INSERT INTO departments SET name=?`, res.name)
         })
         .then(() => console.log(`Added department!`))
+        .then(() => loadPrompts());
 };
 
 const addRole = () => {
@@ -122,6 +132,7 @@ const addRole = () => {
                     connection.promise().query(`INSERT INTO roles SET ?`, res)
                 })
                 .then(() => console.log(`Added role!`))
+                .then(() => loadPrompts());
         })
 };
 
@@ -159,6 +170,7 @@ const addAnEmployee = () => {
                         .then(res => {
                             connection.promise().query(`INSERT INTO employees SET ?`, res)
                                 .then(console.log(`Employee has been added!`))
+                                .then(() => loadPrompts());
                         })
                 });
         });
@@ -194,9 +206,35 @@ const updateEmployee = () => {
                                     connection.promise().query(`UPDATE employees SET roleId=? WHERE id=?`, [res.roleId, id])
                                 })
                                 .then(() => console.log(`Employee has been updated.`))
+                                .then(() => loadPrompts());
                         });
                 });
         });
 };
+
+const deleteDepartment = () => {
+    connection.promise().query(`SELECT * FROM departments`)
+        .then(([rows]) => {
+            const deptArr = rows.map(row => ({ value: row.id, name: row.name }))
+            inquirer.prompt([
+                {
+                    type: "list",
+                    name: "departmentId",
+                    message: "Which department would you like to delete?",
+                    choices: deptArr
+                }
+            ])
+                .then(res => {
+                    connection.promise().query(`DELETE FROM departments WHERE id=?`, [res.departmentId])
+                })
+                .then(() => console.log(`Department has been deleted.`))
+                .then(() => loadPrompts());
+        });
+}
+
+const exitConnection = () => {
+    console.log("Exiting program.")
+    connection.end();
+}
 
 loadPrompts();
